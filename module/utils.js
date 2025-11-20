@@ -440,4 +440,8 @@ export class Utils {
         return this.getHexCoordinates(system.x - 1, system.y - 1);
     }
 
+    // generate a new unique id like npKF4D1snpeCxSu1
+    static getNewId() {
+        return `si${Math.random().toString(36).substring(2, 15)}`;
+    }
 }

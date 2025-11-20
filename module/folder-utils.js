@@ -30,8 +30,24 @@ export class FolderUtils {
         return {
             name,
             type: "JournalEntry",
-            parent: parent?.id,
+            folder: parent?.id,
             flags: Utils.getNodeFlags(node),
+            pages: [
+                {
+                  name: "Page 1",
+                  sort: 10,
+                  type: "text",
+                  _id: Utils.getNewId(),
+                  text: {
+                    format: 1,
+                    content: ""
+                  },
+                  title: {
+                    show: true,
+                    level: 1
+                  }
+                }
+              ]
         };
     }
 
