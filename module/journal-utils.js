@@ -23,19 +23,23 @@ export class JournalUtils {
      */
     static getEmptyJournalData(node, options) {
         const hidden = (options.onlyGMJournals || node.entity.isHidden);
+        
         const permission = {
-            default: hidden ? CONST.DOCUMENT_PERMISSION_LEVELS.NONE : CONST.DOCUMENT_PERMISSION_LEVELS.OBSERVER
+            default: hidden ? CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE : CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER
         };
 
         const name = options.addTypeToEntityJournal ? `[${Utils.getTypeName(node.type)}] ${node.entity.name}` : node.entity.name;
         const folder = FolderUtils.getContainingFolder(node)?.id;
 
+        const imageSrc = NoteUtils.getEntityIcon(node.type, options);
+        const shouldIncludeImage = !options.addTypeToEntityJournal && imageSrc;
+        
         const journal = {
             name,
             folder,
             flags: Utils.getNodeFlags(node),
             permission,
-            pages: pages ? [{ name: 'Image', type: 'image', src }] : []
+            pages: shouldIncludeImage ? [{ name: 'Image', type: 'image', src: imageSrc }] : []
         };
 
         return journal;
@@ -75,10 +79,11 @@ export class JournalUtils {
      * @param folder The folder to put the journal into
      */
     static async getTagJournalData(tagNode, folder) {
+        const name = tagNode.displayTag?.name || tagNode.id;
         const journal = {
-            name: tagNode.displayTag.name,
+            name,
             folder: folder?.id,
-            permission: { default: CONST.DOCUMENT_PERMISSION_LEVELS.OBSERVER }
+            permission: { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER }
         };
 
         return journal;
@@ -92,7 +97,7 @@ export class JournalUtils {
             .map(child => {
                 const childData = {
                     link: child.journal?.link || '',
-                    coordinates: Utils.getLocationWithinParent(child)
+                    coordinates: JournalUtils.getLocationWithinParent(child)
                 };
                 return childData;
             });
@@ -133,7 +138,7 @@ export class JournalUtils {
             notes,
             image: !options.addTypeToEntityJournal,
             type: Utils.getTypeName(node.type),
-            location: Utils.getLocationWithinParent(node),
+            location: JournalUtils.getLocationWithinParent(node),
             parentLink: node.parent ? node.parent.journal?.link : (includeSystemLink && system) ? system.journal?.link : null
         };
 
