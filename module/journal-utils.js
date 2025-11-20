@@ -56,13 +56,18 @@ export class JournalUtils {
         if (node.journal) {
             const templateData = JournalUtils.getTemplateData(sectorTree, node, options);
             const content = await TemplateUtils.renderJournalContent(node.type, templateData);
-
+            const name = options.addTypeToEntityJournal ? `[${Utils.getTypeName(node.type)}] ${node.entity.name}` : node.entity.name;
             const updateData = {
                 _id: node.journal.id,
-                name: options.addTypeToEntityJournal ? `[${Utils.getTypeName(node.type)}] ${node.entity.name}` : node.entity.name,
+                name,
                 pages: [
                     {
-                        name: { content }
+                        name, 
+                        type: "text",
+                        text: {
+                            format: 1,
+                            content
+                        }
                     }
                 ]
             };
