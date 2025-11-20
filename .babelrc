@@ -1,0 +1,9 @@
+{
+  "presets": [
+    ["@babel/preset-env", {
+      "targets": { "chrome": "114", "firefox": "114" },
+      "bugfixes": true
+    }]
+  ],
+  "comments": false
+}

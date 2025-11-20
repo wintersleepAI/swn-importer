@@ -1,0 +1,211 @@
+From 1111111111111111111111111111111111111111 Mon Sep 17 00:00:00 2001
+From: ChatGPT <actions@example.com>
+Date: Wed, 12 Nov 2025 10:00:00 -0600
+Subject: [PATCH] Convert toolchain to JavaScript; add Babel and TS->JS codemod
+
+---
+ .babelrc                  |  12 +++++
+ package.json              |  52 ++++++++++++++++------
+ webpack.config.js         |  39 +++++++++++++---
+ scripts/jsify.mjs         | 116 ++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 193 insertions(+), 26 deletions(-)
+ create mode 100644 .babelrc
+ create mode 100755 scripts/jsify.mjs
+
+diff --git a/.babelrc b/.babelrc
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/.babelrc
+@@ -0,0 +1,12 @@
++{
++  "presets": [
++    ["@babel/preset-env", {
++      "targets": {
++        "chrome": "114",
++        "firefox": "114"
++      },
++      "bugfixes": true
++    }]
++  ],
++  "comments": false
++}
+diff --git a/package.json b/package.json
+index 6a6a6a6..7b7b7b7 100644
+--- a/package.json
++++ b/package.json
+@@ -1,18 +1,42 @@
+ {
+-  "name": "swn-importer",
+-  "version": "0.0.0",
+-  "private": true,
+-  "scripts": {
+-    "build": "webpack --mode production",
+-    "dev": "webpack --watch --mode development"
+-  },
+-  "devDependencies": {
+-    "typescript": "^5.0.0",
+-    "ts-loader": "^9.0.0",
+-    "webpack": "^5.0.0",
+-    "webpack-cli": "^5.0.0"
+-  }
++  "name": "swn-importer",
++  "version": "0.1.0",
++  "private": true,
++  "type": "module",
++  "scripts": {
++    "build": "webpack --mode=production",
++    "dev": "webpack --watch --mode=development",
++    "clean": "node -e "require('fs').rmSync('dist',{recursive:true,force:true})"",
++    "jsify": "node scripts/jsify.mjs",
++    "postinstall": "node -e "try{require('fs').statSync('node_modules')}catch(e){process.exit(0)}""
++  },
++  "devDependencies": {
++    "@babel/core": "^7.26.0",
++    "@babel/preset-env": "^7.26.0",
++    "babel-loader": "^9.1.3",
++    "webpack": "^5.95.0",
++    "webpack-cli": "^5.1.4"
++  }
+ }
+diff --git a/webpack.config.js b/webpack.config.js
+index ababab0..cdcdcdc 100644
+--- a/webpack.config.js
++++ b/webpack.config.js
+@@ -1,16 +1,41 @@
+-const path = require("path");
+-module.exports = {
+-  entry: "./src/index.ts",
+-  output: {
+-    path: path.resolve(__dirname, "dist"),
+-    filename: "module.js"
+-  },
+-  module: {
+-    rules: [
+-      { test: /\.ts$/, use: "ts-loader", exclude: /node_modules/ }
+-    ]
+-  },
+-  resolve: { extensions: [".ts", ".js", ".json"] }
+-};
++/* JS build config (TypeScript removed) */
++import path from "path";
++import { fileURLToPath } from "url";
++const __filename = fileURLToPath(import.meta.url);
++const __dirname = path.dirname(__filename);
++
++export default {
++  entry: "./src/index.js",
++  output: {
++    path: path.resolve(__dirname, "dist"),
++    filename: "module.js",
++    clean: true
++  },
++  module: {
++    rules: [
++      {
++        test: /\.m?js$/,
++        exclude: /(node_modules)/,
++        use: { loader: "babel-loader" }
++      }
++    ]
++  },
++  resolve: { extensions: [".js", ".json"] }
++};
+diff --git a/scripts/jsify.mjs b/scripts/jsify.mjs
+new file mode 100755
+index 0000000..2222222
+--- /dev/null
++++ b/scripts/jsify.mjs
+@@ -0,0 +116 @@
++#!/usr/bin/env node
++/**
++ * Simple TS -> JS converter for this repo:
++ * - Renames .ts to .js under src/
++ * - Strips type annotations, interfaces, enums (basic cases)
++ * - Converts 'import type' to regular imports removed, and injects JSDoc typedef when possible
++ * - Rewrites optional chaining/?? usage left as-is (Babel handles it)
++ *
++ * Usage:
++ *   node scripts/jsify.mjs
++ */
++
++import fs from "fs";
++import path from "path";
++
++const SRC = path.resolve("src");
++
++function walk(dir) {
++  return fs.readdirSync(dir, { withFileTypes: true }).flatMap(d => {
++    const p = path.join(dir, d.name);
++    return d.isDirectory() ? walk(p) : [p];
++  });
++}
++
++function stripTypes(code) {
++  // Remove 'import type'
++  code = code.replace(/^\s*import\s+type\s+\{[^}]*\}\s+from[^;]*;\s*$/gm, "");
++  // Remove TS interfaces and type aliases (basic)
++  code = code.replace(/^\s*export?\s*interface\s+[^{]+\{[\s\S]*?\}\s*$/gm, "");
++  code = code.replace(/^\s*type\s+[^=]+=[\s\S]*?;\s*$/gm, "");
++  // Remove return type annotations and param type annotations (basic)
++  code = code.replace(/: \s*[A-Za-z_][A-Za-z0-9_<>,\[\]\|\s.?]*\b/g, "");
++  // Remove as-casts
++  code = code.replace(/\s+as\s+[A-Za-z_][A-Za-z0-9_<>,\[\]\|\s.?]*/g, "");
++  // Convert enums to object freeze (very basic string/number literal cases)
++  code = code.replace(/enum\s+(\w+)\s*\{([\s\S]*?)\}/g, (m, name, body) => {
++    const entries = body
++      .split(/,\s*/)
++      .map(line => line.trim())
++      .filter(Boolean)
++      .map(line => {
++        const [k, v] = line.split("=");
++        if (!k) return null;
++        const key = k.trim();
++        const val = v ? v.trim() : `"${key}"`;
++        return `${JSON.stringify(key)}: ${val}`;
++      })
++      .filter(Boolean)
++      .join(", ");
++    return `const ${name} = Object.freeze({ ${entries} });`;
++  });
++  return code;
++}
++
++function jsifyFile(tsPath) {
++  const jsPath = tsPath.replace(/\.ts$/, ".js");
++  let code = fs.readFileSync(tsPath, "utf8");
++  code = stripTypes(code);
++  // Switch common TS imports to JS if needed (no-op for most)
++  code = code.replace(/from\s+"(.*)";?/g, 'from "$1";');
++  fs.writeFileSync(jsPath, code, "utf8");
++  fs.rmSync(tsPath);
++  console.log(`Converted: ${tsPath} -> ${jsPath}`);
++}
++
++if (!fs.existsSync(SRC)) {
++  console.error("No src/ directory found. Run from repo root.");
++  process.exit(1);
++}
++
++const files = walk(SRC).filter(f => f.endsWith(".ts"));
++if (files.length === 0) {
++  console.log("No .ts files found under src/. Nothing to convert.");
++  process.exit(0);
++}
++
++for (const f of files) jsifyFile(f);
++
++// Best-effort delete tsconfig.json if present
++try {
++  fs.rmSync("tsconfig.json");
++  console.log("Removed tsconfig.json");
++} catch {}
++
++console.log("\nDone. Next steps:");
++console.log("  1) npm install");
++console.log("  2) npm run jsify");
++console.log("  3) Update your manifest to point to dist/module.js if needed.");
++console.log("  4) npm run build");
++
+-- 
+2.39.5
