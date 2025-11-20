@@ -25,7 +25,12 @@ export class SceneUtils {
             gridColor: Constants.GRID_COLOR,
             gridType: Utils.getLabel("HEX-UNIT-NAME"),
             height: this.getSceneHeight(sector.rows),
-            img: Constants.BACKGROUND_COLOR,
+            background: {
+                src: options.backgroundPath,
+                color: Constants.BACKGROUND_COLOR,
+                alpha: 1
+            },
+            thumb: options.backgroundPath,
             name: Utils.getTimestampedName(Scenes.instance, sectorTree.root.entity.name),
             padding: 0,
             notes: NoteUtils.getSectorNotes(sectorTree, options),

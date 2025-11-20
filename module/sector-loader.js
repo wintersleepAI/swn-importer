@@ -121,8 +121,8 @@ export class SectorLoader {
     async createScene(sectorTree) {
         const scene = await Scene.create(SceneUtils.getSceneData(sectorTree, this.options));
         if (scene) {
-            const thumbnail = await scene.createThumbnail({ img: Constants.BACKGROUND_COLOR });
-            await scene.update({ thumb: thumbnail }, {});
+            // const thumbnail = await scene.createThumbnail({ img: Constants.BACKGROUND_COLOR });
+            // await scene.update({ thumb: thumbnail }, {});
         } else {
             throw new Error("Couldn't create the scene");
         }
