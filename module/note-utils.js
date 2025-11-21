@@ -114,10 +114,11 @@ export class NoteUtils {
     static getHexCenterPosition(column, row) {
         let verticalOffset = 0;
 
+        // Even-q: even columns are offset down more
         if (column % 2 === 0) {
-            verticalOffset = Constants.HEX_VERTICAL_RADIUS;
-        } else {
             verticalOffset = 2 * Constants.HEX_VERTICAL_RADIUS;
+        } else {
+            verticalOffset = Constants.HEX_VERTICAL_RADIUS;
         }
 
         return {

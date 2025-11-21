@@ -51,10 +51,9 @@ export class SceneUtils {
         let height = rows * Constants.HEX_HEIGHT;
         // Add base vertical offset (HEX_VERTICAL_RADIUS)
         height += Constants.HEX_VERTICAL_RADIUS;
-        // If there are multiple columns, odd columns extend further down by HEX_VERTICAL_RADIUS
-        if (columns > 1) {
-            height += Constants.HEX_VERTICAL_RADIUS;
-        }
+        // For even-q: even columns (including column 0) are offset down more by HEX_VERTICAL_RADIUS
+        // Since column 0 is even, we always need this extra offset
+        height += Constants.HEX_VERTICAL_RADIUS;
         // Add padding on bottom (HEX_VERTICAL_RADIUS)
         height += Constants.HEX_VERTICAL_RADIUS;
         return Math.floor(height);
@@ -63,8 +62,8 @@ export class SceneUtils {
     static getSceneWidth(columns) {
         // Rightmost hex center: (3/4) * HEX_WIDTH * (columns-1) + HEX_RADIUS
         // Add HEX_RADIUS for right edge of hex, plus HEX_RADIUS for right padding
-        // Simplified: (3/4) * HEX_WIDTH * columns + (3/2) * HEX_RADIUS
-        return Math.floor(((3 / 4) * Constants.HEX_WIDTH * columns) + ((3 / 2) * Constants.HEX_RADIUS));
+        // Simplified: (3/4) * HEX_WIDTH * columns + HEX_WIDTH
+        return Math.floor(((3 / 4) * Constants.HEX_WIDTH * columns) + Constants.HEX_WIDTH);
     }
 
     static getTextLabel(text, x, y) {          
@@ -77,9 +76,9 @@ export class SceneUtils {
             // Required shape (minimal rectangle works best for pure text)
             shape: {
                 type: foundry.data.ShapeData.TYPES.RECTANGLE,
-                width: 20,
-                height: 10,
-                radius: 1,
+                width: 50,
+                height: 20,
+                radius: 10,
                 points: []
             },
         
@@ -122,10 +121,11 @@ export class SceneUtils {
     static getHexCenterPosition(column, row) {
         let verticalOffset = 0;
 
+        // Even-q: even columns are offset down more
         if (column % 2 === 0) {
-            verticalOffset = Constants.HEX_VERTICAL_RADIUS;
-        } else {
             verticalOffset = 2 * Constants.HEX_VERTICAL_RADIUS;
+        } else {
+            verticalOffset = Constants.HEX_VERTICAL_RADIUS;
         }
 
         return {
