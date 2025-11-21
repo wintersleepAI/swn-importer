@@ -100,7 +100,10 @@ export class SceneUtils {
             for (let row = 0; row < sector.rows; row++) {
                 for (let column = 0; column < sector.columns; column++) {
                     const coordinates = this.getHexCenterPosition(column, row);
-                    labels.push(this.getTextLabel(Utils.getHexCoordinates(column, row), coordinates.x, coordinates.y + (9 / 10) * Constants.HEX_VERTICAL_RADIUS));
+                    const label = Utils.getHexCoordinates(column, row);
+                    // , coordinates.x, coordinates.y + (9 / 10) * Constants.HEX_VERTICAL_RADIUS);
+                    // labels.push(this.getTextLabel(Utils.getHexCoordinates(column, row), coordinates.x, coordinates.y + (9 / 10) * Constants.HEX_VERTICAL_RADIUS));
+                    labels.push(this.getTextLabel(label, coordinates.x, coordinates.y));
                 }
             }
         }
@@ -111,7 +114,11 @@ export class SceneUtils {
                 .forEach(node => {
                     const system = node.entity;
                     const coordinates = this.getHexCenterPosition(system.x - 1, system.y - 1);
-                    labels.push(this.getTextLabel(node.entity.name, coordinates.x - Math.floor(Constants.HEX_HEIGHT / 2), coordinates.y - (9 / 10) * Constants.HEX_VERTICAL_RADIUS));
+                    // Hex name label at top of hex (subtract from y), centered horizontally
+                    
+                    // labels.push(this.getTextLabel(node.entity.name, coordinates.x - Math.floor(Constants.HEX_HEIGHT / 2), coordinates.y - (9 / 10) * Constants.HEX_VERTICAL_RADIUS));
+
+                    //labels.push(this.getTextLabel(node.entity.name, coordinates.x, coordinates.y - (9 / 10) * Constants.HEX_VERTICAL_RADIUS));
                 });
         }
 
