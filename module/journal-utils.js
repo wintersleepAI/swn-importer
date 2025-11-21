@@ -138,13 +138,21 @@ export class JournalUtils {
 
         const data = {
             name: node.entity.name,
+            diagram: JournalUtils.generateDiagram(sectorTree, node, options),
             attributes,
             description,
             notes,
             image: !options.addTypeToEntityJournal,
             type: Utils.getTypeName(node.type),
             location: JournalUtils.getLocationWithinParent(node),
-            parentLink: node.parent ? node.parent.journal?.link : (includeSystemLink && system) ? system.journal?.link : null
+            parentLink: node.parent ? node.parent.journal?.link : (includeSystemLink && system) ? system.journal?.link : null,
+            parentType: node.parent ? Utils.getTypeName(node.parent.type) : undefined,
+            parentTags: node.parent ? Utils.getEntityDisplayTags(sectorTree, node.parent) : undefined,
+            systemLink: (includeSystemLink && system) ? system.journal?.link : undefined,
+            systemType: (includeSystemLink && system) ? Utils.getTypeName(system.type) : undefined,
+            systemTags: (includeSystemLink && system) ? Utils.getEntityDisplayTags(sectorTree, system) : undefined,
+            children,
+            coordinates: system?.coordinates
         };
 
         return data;
