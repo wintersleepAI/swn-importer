@@ -57,10 +57,20 @@ export class NoteUtils {
         const iconPosition = this.getIconPosition(node, entityCount, entityIndex, options);
 
         const note = {
+            _id: foundry.utils.randomID(),
             entryId: node.journal?.id,
             iconSize: 32,
-            text: 32,
+            texture: {
+                src: this.getEntityIcon(node.type, options),
+                anchorX: 0.5,
+                anchorY: 0.5,
+                offsetX: 0,
+                offsetY: 0,
+                fit: "contain",
+            },
+            text: node.entity.name?.length > 0 ? node.entity.name : Utils.getTypeName(node.type),
             textAnchor: foundry.CONST.TEXT_ANCHOR_POINTS.CENTER,
+            flags: Utils.getNodeFlags(node),
             x: iconPosition.x,
             y: iconPosition.y
         };
@@ -70,7 +80,7 @@ export class NoteUtils {
 
     static getIconPosition(node, entityCount, entityIndex, options) {
         const parent = Utils.getContainingSystem(node).entity;
-        const center = this.getHexCenterPosition(parent.x - 1, parent.y - 1);
+        const center = Utils.getHexCenterPosition(parent.x - 1, parent.y - 1);
 
         let offset = { x: 0, y: 0 };
         let tooltipPosition = foundry.CONST.TEXT_ANCHOR_POINTS.CENTER;
@@ -109,22 +119,6 @@ export class NoteUtils {
         const y = Math.sin(angle) * Constants.ORBITING_DISTANCE;
 
         return { x, y };
-    }
-
-    static getHexCenterPosition(column, row) {
-        let verticalOffset = 0;
-
-        // Even-q: even columns are offset down more
-        if (column % 2 === 0) {
-            verticalOffset = 2 * Constants.HEX_VERTICAL_RADIUS;
-        } else {
-            verticalOffset = Constants.HEX_VERTICAL_RADIUS;
-        }
-
-        return {
-            x: ((3 / 4) * Constants.HEX_WIDTH * column) + Constants.HEX_RADIUS,
-            y: (Constants.HEX_HEIGHT * row) + Constants.HEX_VERTICAL_RADIUS + verticalOffset
-        };
     }
 
 }

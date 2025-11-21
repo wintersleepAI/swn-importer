@@ -71,6 +71,23 @@ export class Utils {
         return game.i18n.format(Constants.LOCALIZATION_NAMESPACE + "." + name, data);
     }
 
+
+    static getHexCenterPosition(column, row) {
+        let verticalOffset = 0;
+
+        if (column % 2 === 0) {
+            verticalOffset = Constants.HEX_VERTICAL_RADIUS;
+        } else {
+            verticalOffset = 2 * Constants.HEX_VERTICAL_RADIUS;
+        }
+
+        return {
+            x: Math.floor(((3 / 4) * Constants.HEX_WIDTH * column) + Constants.HEX_RADIUS),
+            y: Math.floor((Constants.HEX_HEIGHT * row) + Constants.HEX_VERTICAL_RADIUS + verticalOffset)
+        }
+    }
+
+
     /**
      * Get the Foundry flags for a SWN entity
      * @param node The node to generate flags for

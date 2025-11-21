@@ -9,6 +9,11 @@ import { Utils } from './utils.js';
 
 export class SceneUtils {
 
+
+    static LABEL_WIDTH = 10;
+    static LABEL_HEIGHT = 10;
+    static OFFSET_X = this.LABEL_WIDTH / 2 + 1;
+    static OFFSET_Y = this.LABEL_HEIGHT / 2 + 1;
     /**
      * Gets a Foundry Scene Data object to generate a scene for a sector
      * @param sectorTree The sector tree to generate a scene for
@@ -54,7 +59,7 @@ export class SceneUtils {
         return Math.floor((((3 / 4) * Constants.HEX_WIDTH) * columns) + ((1 / 4) * Constants.HEX_WIDTH));
     }
 
-    static getTextLabel(text, x, y) {          
+    static getTextLabel(text, x, y, fontSize = 16, textColor = "#ffffff") {          
         return {
             _id: foundry.utils.randomID(),
             author: game.user.id,
@@ -64,14 +69,15 @@ export class SceneUtils {
             // Required shape (minimal rectangle works best for pure text)
             shape: {
                 type: foundry.data.ShapeData.TYPES.RECTANGLE,
-                width: 10,
-                height: 10,
+                width: this.LABEL_WIDTH,
+                height: this.LABEL_HEIGHT,
                 radius: 1,
                 points: []
             },
         
             text,
-            fontSize: 16,
+            textColor,
+            fontSize,
             fillColor: null,        // can be null if text is visible
             strokeWidth: 0,         // ok, because text is visible
             strokeColor: null,
@@ -87,11 +93,13 @@ export class SceneUtils {
             const sector = sectorTree.root.entity;
             for (let row = 0; row < sector.rows; row++) {
                 for (let column = 0; column < sector.columns; column++) {
-                    const coordinates = this.getHexCenterPosition(column, row);
+                    const coordinates = Utils.getHexCenterPosition(column, row);
                     const label = Utils.getHexCoordinates(column, row);
                     // , coordinates.x, coordinates.y + (9 / 10) * Constants.HEX_VERTICAL_RADIUS);
                     // labels.push(this.getTextLabel(Utils.getHexCoordinates(column, row), coordinates.x, coordinates.y + (9 / 10) * Constants.HEX_VERTICAL_RADIUS));
-                    labels.push(this.getTextLabel(label, coordinates.x-6, coordinates.y - 6 + (9 / 10) * Constants.HEX_VERTICAL_RADIUS));
+                    labels.push(this.getTextLabel(label, coordinates.x- this.OFFSET_X, coordinates.y - this.OFFSET_Y + (9 / 10) * Constants.HEX_VERTICAL_RADIUS, 16, "#bababa"));
+                    // Debug label for coordinates in center of hex
+                    //labels.push(this.getTextLabel(`${coordinates.x},${coordinates.y}`, coordinates.x, coordinates.y));
                 }
             }
         }
@@ -101,10 +109,11 @@ export class SceneUtils {
                 .filter(node => node.type !== 'note')
                 .forEach(node => {
                     const system = node.entity;
-                    const coordinates = this.getHexCenterPosition(system.x - 1, system.y - 1);
+                    const coordinates = Utils.getHexCenterPosition(system.x - 1, system.y - 1);
                     // Hex name label at top of hex (subtract from y), centered horizontally
-                    
-                    labels.push(this.getTextLabel(node.entity.name, coordinates.x - Math.floor(Constants.HEX_HEIGHT / 2), coordinates.y - (9 / 10) * Constants.HEX_VERTICAL_RADIUS));
+                    // Names with spaces are shifted down slightly
+                    let yOffset = node.entity.name?.indexOf(" ") > 0 ?  (7.5 / 10) * Constants.HEX_VERTICAL_RADIUS : (9 / 10) * Constants.HEX_VERTICAL_RADIUS;
+                    labels.push(this.getTextLabel(node.entity.name, coordinates.x - this.OFFSET_X, coordinates.y - this.OFFSET_Y - yOffset, 16));
 
                     //labels.push(this.getTextLabel(node.entity.name, coordinates.x, coordinates.y - (9 / 10) * Constants.HEX_VERTICAL_RADIUS));
                 });
@@ -113,18 +122,4 @@ export class SceneUtils {
         return labels;
     }
 
-    static getHexCenterPosition(column, row) {
-        let verticalOffset = 0;
-
-        if (column % 2 === 0) {
-            verticalOffset = Constants.HEX_VERTICAL_RADIUS;
-        } else {
-            verticalOffset = 2 * Constants.HEX_VERTICAL_RADIUS;
-        }
-
-        return {
-            x: Math.floor(((3 / 4) * Constants.HEX_WIDTH * column) + Constants.HEX_RADIUS),
-            y: Math.floor((Constants.HEX_HEIGHT * row) + Constants.HEX_VERTICAL_RADIUS + verticalOffset)
-        }
-    }
 }
