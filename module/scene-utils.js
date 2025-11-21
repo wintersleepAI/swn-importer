@@ -22,14 +22,14 @@ export class SceneUtils {
             active: false,
             flags: Utils.getNodeFlags(sectorTree.root),
             grid: {
-                type: CONST.GRID_TYPES.HEXODDQ,
+                type: CONST.GRID_TYPES.HEXEVENQ,
                 units: Utils.getLabel("HEX-UNIT-NAME"),
                 color: Constants.GRID_COLOR,
                 size: Constants.HEX_WIDTH,
                 alpha: 0.3,
                 distance: 1,
             },
-            height: this.getSceneHeight(sector.rows),
+            height: this.getSceneHeight(sector.rows, sector.columns),
             background: {
                 src: options.backgroundPath,
                 color: Constants.BACKGROUND_COLOR,
@@ -46,12 +46,25 @@ export class SceneUtils {
         return sceneData;
     }
 
-    static getSceneHeight(rows) {
-        return Math.floor((rows + 1) * Constants.HEX_HEIGHT);
+    static getSceneHeight(rows, columns) {
+        // Base height for all rows
+        let height = rows * Constants.HEX_HEIGHT;
+        // Add base vertical offset (HEX_VERTICAL_RADIUS)
+        height += Constants.HEX_VERTICAL_RADIUS;
+        // If there are multiple columns, odd columns extend further down by HEX_VERTICAL_RADIUS
+        if (columns > 1) {
+            height += Constants.HEX_VERTICAL_RADIUS;
+        }
+        // Add padding on bottom (HEX_VERTICAL_RADIUS)
+        height += Constants.HEX_VERTICAL_RADIUS;
+        return Math.floor(height);
     }
 
     static getSceneWidth(columns) {
-        return Math.floor((((3 / 4) * Constants.HEX_WIDTH) * columns) + ((1 / 4) * Constants.HEX_WIDTH));
+        // Rightmost hex center: (3/4) * HEX_WIDTH * (columns-1) + HEX_RADIUS
+        // Add HEX_RADIUS for right edge of hex, plus HEX_RADIUS for right padding
+        // Simplified: (3/4) * HEX_WIDTH * columns + (3/2) * HEX_RADIUS
+        return Math.floor(((3 / 4) * Constants.HEX_WIDTH * columns) + ((3 / 2) * Constants.HEX_RADIUS));
     }
 
     static getTextLabel(text, x, y) {          
