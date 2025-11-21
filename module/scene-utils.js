@@ -22,10 +22,10 @@ export class SceneUtils {
             active: false,
             flags: Utils.getNodeFlags(sectorTree.root),
             grid: {
-                type: CONST.GRID_TYPES.HEXEVENQ,
+                type: CONST.GRID_TYPES.HEXODDQ,
                 units: Utils.getLabel("HEX-UNIT-NAME"),
                 color: Constants.GRID_COLOR,
-                size: Constants.HEX_WIDTH,
+                size: 173,
                 alpha: 0.3,
                 distance: 1,
             },
@@ -46,24 +46,12 @@ export class SceneUtils {
         return sceneData;
     }
 
-    static getSceneHeight(rows, columns) {
-        // Base height for all rows
-        let height = rows * Constants.HEX_HEIGHT;
-        // Add base vertical offset (HEX_VERTICAL_RADIUS)
-        height += Constants.HEX_VERTICAL_RADIUS;
-        // For even-q: even columns (including column 0) are offset down more by HEX_VERTICAL_RADIUS
-        // Since column 0 is even, we always need this extra offset
-        height += Constants.HEX_VERTICAL_RADIUS;
-        // Add padding on bottom (HEX_VERTICAL_RADIUS)
-        height += Constants.HEX_VERTICAL_RADIUS;
-        return Math.floor(height);
+    static getSceneHeight(rows) {
+        return Math.floor((rows + 1) * Constants.HEX_HEIGHT);
     }
 
     static getSceneWidth(columns) {
-        // Rightmost hex center: (3/4) * HEX_WIDTH * (columns-1) + HEX_RADIUS
-        // Add HEX_RADIUS for right edge of hex, plus HEX_RADIUS for right padding
-        // Simplified: (3/4) * HEX_WIDTH * columns + HEX_WIDTH
-        return Math.floor(((3 / 4) * Constants.HEX_WIDTH * columns) + Constants.HEX_WIDTH);
+        return Math.floor((((3 / 4) * Constants.HEX_WIDTH) * columns) + ((1 / 4) * Constants.HEX_WIDTH));
     }
 
     static getTextLabel(text, x, y) {          
@@ -76,9 +64,9 @@ export class SceneUtils {
             // Required shape (minimal rectangle works best for pure text)
             shape: {
                 type: foundry.data.ShapeData.TYPES.RECTANGLE,
-                width: 50,
-                height: 20,
-                radius: 10,
+                width: 10,
+                height: 10,
+                radius: 1,
                 points: []
             },
         
@@ -103,7 +91,7 @@ export class SceneUtils {
                     const label = Utils.getHexCoordinates(column, row);
                     // , coordinates.x, coordinates.y + (9 / 10) * Constants.HEX_VERTICAL_RADIUS);
                     // labels.push(this.getTextLabel(Utils.getHexCoordinates(column, row), coordinates.x, coordinates.y + (9 / 10) * Constants.HEX_VERTICAL_RADIUS));
-                    labels.push(this.getTextLabel(label, coordinates.x, coordinates.y));
+                    labels.push(this.getTextLabel(label, coordinates.x-6, coordinates.y - 6 + (9 / 10) * Constants.HEX_VERTICAL_RADIUS));
                 }
             }
         }
@@ -116,7 +104,7 @@ export class SceneUtils {
                     const coordinates = this.getHexCenterPosition(system.x - 1, system.y - 1);
                     // Hex name label at top of hex (subtract from y), centered horizontally
                     
-                    // labels.push(this.getTextLabel(node.entity.name, coordinates.x - Math.floor(Constants.HEX_HEIGHT / 2), coordinates.y - (9 / 10) * Constants.HEX_VERTICAL_RADIUS));
+                    labels.push(this.getTextLabel(node.entity.name, coordinates.x - Math.floor(Constants.HEX_HEIGHT / 2), coordinates.y - (9 / 10) * Constants.HEX_VERTICAL_RADIUS));
 
                     //labels.push(this.getTextLabel(node.entity.name, coordinates.x, coordinates.y - (9 / 10) * Constants.HEX_VERTICAL_RADIUS));
                 });
@@ -128,16 +116,15 @@ export class SceneUtils {
     static getHexCenterPosition(column, row) {
         let verticalOffset = 0;
 
-        // Even-q: even columns are offset down more
         if (column % 2 === 0) {
-            verticalOffset = 2 * Constants.HEX_VERTICAL_RADIUS;
-        } else {
             verticalOffset = Constants.HEX_VERTICAL_RADIUS;
+        } else {
+            verticalOffset = 2 * Constants.HEX_VERTICAL_RADIUS;
         }
 
         return {
-            x: ((3 / 4) * Constants.HEX_WIDTH * column) + Constants.HEX_RADIUS,
-            y: (Constants.HEX_HEIGHT * row) + Constants.HEX_VERTICAL_RADIUS + verticalOffset
-        };
+            x: Math.floor(((3 / 4) * Constants.HEX_WIDTH * column) + Constants.HEX_RADIUS),
+            y: Math.floor((Constants.HEX_HEIGHT * row) + Constants.HEX_VERTICAL_RADIUS + verticalOffset)
+        }
     }
 }
