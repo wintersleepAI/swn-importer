@@ -125,7 +125,9 @@ export class JournalUtils {
             .map(child => {
                 const childData = {
                     link: child.journal?.link || '',
-                    coordinates: JournalUtils.getLocationWithinParent(child)
+                    type: Utils.getTypeName(child.type),
+                    tags: Utils.getEntityDisplayTags(sectorTree, child),
+                    coordinates: child.coordinates
                 };
                 return childData;
             });
@@ -165,7 +167,8 @@ export class JournalUtils {
             attributes,
             description,
             notes,
-            image: !options.addTypeToEntityJournal,
+            image: node.entity.image,
+            showType: !options.addTypeToEntityJournal,
             tags,
             type: Utils.getTypeName(node.type),
             location: JournalUtils.getLocationWithinParent(node),
@@ -229,9 +232,11 @@ export class JournalUtils {
                     }
                 }
                 return {
-                    indentation: indentation.join(''),
+                    indentation,
                     image: NoteUtils.getEntityIcon(node.type, options),
-                    link: (diagramRoot !== node) ? node.journal?.link : (!options.addTypeToEntityJournal ? Utils.getTypeName(node.type) : node.entity.name)
+                    type: !options.addTypeToEntityJournal ? node.type : null,
+                    link: (diagramRoot !== node) ? node.journal?.link : null,
+                    tags: Utils.getEntityDisplayTags(sectorTree, node),
                 };
             });
         }
