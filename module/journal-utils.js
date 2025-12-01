@@ -84,11 +84,21 @@ export class JournalUtils {
      * @param folder The folder to put the journal into
      */
     static async getTagJournalData(tagNode, folder) {
-        const name = tagNode.displayTag?.name || tagNode.id;
+        const name = tagNode.tag?.name || tagNode.id;
         const journal = {
+            _id: tagNode.journal?.id,
             name,
             folder: folder?.id,
-            permission: { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER }
+            permission: { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER },
+            flags: {},
+            pages: [{
+                name: name,
+                type: "text",
+                text: {
+                    format: 1,
+                    content: await renderTemplate(Utils.getTemplatePath("tag.html"), tagNode.displayTag)
+                }
+            }]
         };
 
         return journal;

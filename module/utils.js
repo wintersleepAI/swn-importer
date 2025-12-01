@@ -354,7 +354,7 @@ export class Utils {
             if (node.entity && node.entity.attributes && node.entity.attributes.tags) {
                 node.entity.attributes.tags.forEach(tag => {
                     if (!tagMap.has(tag.name)) {
-                        tagMap.set(tag.name, { id: tag.name, journal: null });
+                        tagMap.set(tag.name, { id: tag.name, tag: tag, displayTag: Utils.getDisplayTag(tag), journal: null });
                     }
                 });
             }

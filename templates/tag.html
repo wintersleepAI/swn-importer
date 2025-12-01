@@ -1,11 +1,10 @@
-<h2 style="margin-top: 5px;">{{name}}</h2>
 <p>{{description}}</p>
 {{#if link}}
 <blockquote>{{ localize "SWN-IMPORTER.TAG-ORIGINAL" }} {{link}}</blockquote>
 {{/if}}
 {{#lists}}
 <div>
-    <h3>{{name}}</h3>
+    <h3 style="text-transform: capitalize;">{{name}}</h3>
     <ul style="list-style-type: circle;">
         {{#elements}}
         <li>
