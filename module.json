@@ -1,9 +1,8 @@
 {
     "id": "swn-importer",
-    "name": "swn-importer",
-    "title": "Sectors Without Number sector importer",
+    "title": "Sectors Without Number Importer",
     "description": "",
-    "version": "v1.0.0",
+    "version": "1.0.0",
     "library": "false",
     "minimumCoreVersion": "13",
     "compatibleCoreVersion": "13",
@@ -11,6 +10,10 @@
         {
             "name": "Iceman98",
             "url": "https://github.com/iceman98"
+        },
+        {
+        "name": "wintersleepAI",
+        "discord": "wintersleep1832"
         }
     ],
     "dependencies": [],
@@ -34,7 +37,7 @@
             "path": "languages/es.json"
         }
     ],
-    "url": "https://github.com/iceman98/swn-importer",
-    "manifest": "https://github.com/iceman98/swn-importer/releases/latest/download/module.json",
-    "download": "https://github.com/iceman98/swn-importer/releases/download/v0.2.0/module.zip"
+    "url": "https://github.com/wintersleepAI/swn-importer",
+    "manifest": "https://github.com/wintersleepAI/swn-importer/releases/latest/download/module.json",
+    "download": "https://github.com/wintersleepAI/swn-importer/releases/download/v1.0.0/module.zip"
 }

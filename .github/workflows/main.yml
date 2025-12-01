@@ -1,47 +1,63 @@
-name: Release Creation
+name: Release FoundryVTT Module
 
-on: 
-  release:
-    types: [published]
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write   # Required for uploading release assets
+  actions: write    # Required for interacting with releases
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - uses: actions/setup-node@v2.5.1
-      with:
-        node-version: '14'
-        cache: 'npm'
-    - run: npm install
-    - run: npm run build:production
+      - name: Set up Node.js (for modifying module.json and running npm scripts)
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
 
-    # Substitute the Manifest and Download URLs in the module.json
-    - name: Substitute Manifest and Download Links For Versioned Ones
-      id: sub_manifest_link_version
-      uses: microsoft/variable-substitution@v1
-      with:
-        files: './dist/module.json'
-      env:
-        version: ${{github.event.release.tag_name}}
-        url: https://github.com/${{github.repository}}
-        manifest: https://github.com/${{github.repository}}/releases/latest/download/module.json
-        download: https://github.com/${{github.repository}}/releases/download/${{github.event.release.tag_name}}/module.zip
+      - name: Install dependencies
+        run: |
+          npm install
 
-    # Create a zip file with all files required by the module to add to the release
-    - run: cd dist && zip -r ../module.zip .
+      - name: Modify module.json with version
+        run: |
+          VERSION="${GITHUB_REF/refs\/tags\/v/}"
+          echo "Updating module.json with version $VERSION"
+          jq --arg version "$VERSION" '.version = $version' module.json > module.json.tmp && mv module.json.tmp module.json
 
-    # Create a release for this specific version
-    - name: Update Release with Files
-      id: create_version_release
-      uses: ncipollo/release-action@v1
-      with:
-        allowUpdates: true # Set this to false if you want to prevent updating existing releases
-        name: ${{ github.event.release.name }}
-        draft: false
-        prerelease: false
-        token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: './dist/module.json, ./module.zip'
-        tag: ${{ github.event.release.tag_name }}
-        body: ${{ github.event.release.body }}
+      - name: Create zip package
+        run: |
+          VERSION="${GITHUB_REF/refs\/tags\/v/}"
+          mkdir -p release
+          zip -r "release/swn-importer-${VERSION}.zip" * -x "*.git*" "*.github*" "release/*" "node_modules/*" "foundry/*"
+
+      - name: Upload release zip to GitHub
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Modify module.json download field
+        run: |
+          VERSION="${GITHUB_REF/refs\/tags\/v/}"
+          DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/swn-importer-${VERSION}.zip"
+          echo "Updating download URL in module.json to $DOWNLOAD_URL"
+          jq --arg download_url "$DOWNLOAD_URL" '.download = $download_url' module.json > module.json.tmp && mv module.json.tmp module.json
+
+      - name: Upload module.json to GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: module.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up
+        run: |
+          rm -rf release
