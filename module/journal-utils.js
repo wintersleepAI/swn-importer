@@ -71,7 +71,20 @@ export class JournalUtils {
                     }
                 ]
             };
-
+            // if (node.entity.attributes.tags && node.entity.attributes.tags.length > 0) {
+            //     for (const tag of node.entity.attributes.tags) {
+            if (templateData.tags && templateData.tags.length > 0) {
+                for (const tag of templateData.tags) {
+                    updateData.pages.push({
+                        name: tag.name + " [Tag]",
+                        type: "text",
+                        text: {
+                            format: 1,
+                            content: await renderTemplate(Utils.getTemplatePath("tag.html"), tag)
+                        }
+                    });
+                }
+            }
             return updateData;
         } else {
             throw new Error("Couldn't find the journal for the entity " + node.id);
@@ -153,6 +166,7 @@ export class JournalUtils {
             description,
             notes,
             image: !options.addTypeToEntityJournal,
+            tags,
             type: Utils.getTypeName(node.type),
             location: JournalUtils.getLocationWithinParent(node),
             parentLink: node.parent ? node.parent.journal?.link : (includeSystemLink && system) ? system.journal?.link : null,

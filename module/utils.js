@@ -418,7 +418,7 @@ export class Utils {
         for (const key in tag) {
             if (key !== 'types' && tag[key] instanceof Array) {
                 lists.push({
-                    name: key,
+                    name: Utils.getTagListName(key),
                     elements: tag[key]
                 });
             }
@@ -426,7 +426,9 @@ export class Utils {
 
         return {
             name: tag.name || '',
-            lists: lists
+            description: tag.description || '',
+            lists: lists,
+            link: null
         };
     }
 
